@@ -31,25 +31,64 @@ void init_words(word_count_list_t* wclist) { /* TODO */
 
 size_t len_words(word_count_list_t* wclist) {
   /* TODO */
-  return 0;
+  size_t cd = 0;
+  struct list_elem *ls;
+  for (ls = list_begin(wclist); ls != list_end(wclist); ls = list_next(ls)) 
+  {
+    cd++;
+  }
+  return cd;
 }
 
 word_count_t* find_word(word_count_list_t* wclist, char* word) {
   /* TODO */
+  struct list_elem *ls;
+  for (ls = list_begin(wclist); ls != list_end(wclist); ls = list_next(ls)) 
+  {
+    word_count_t *countt = list_entry(ls, word_count_t, elem);
+    if (!strcmp(word, countt->word)) {
+      return countt;
+    }
+  }
   return NULL;
 }
 
 word_count_t* add_word(word_count_list_t* wclist, char* word) {
   /* TODO */
-  return NULL;
+  struct list_elem *ls;
+  for (ls = list_begin(wclist); ls != list_end(wclist); ls = list_next(ls)) 
+  {
+    word_count_t *countt = list_entry(ls, word_count_t, elem);
+    if (!strcmp(word, countt->word)) {
+      countt->count++;
+      return countt;
+    }
+  }
+  word_count_t *countt = malloc(sizeof(word_count_t));
+  countt->count = 1;
+  countt->word = malloc(64 * sizeof(char));
+  strcpy(countt->word, word);
+  list_push_back(wclist, &countt->elem);
+
+  return countt;
 }
 
-void fprint_words(word_count_list_t* wclist, FILE* outfile) { /* TODO */
+void fprint_words(word_count_list_t* wclist, FILE* outfile) { 
+  /* TODO */
+  struct list_elem *ls;
+  for (ls = list_begin(wclist); ls != list_end(wclist); ls = list_next(ls)) 
+  {
+    word_count_t *countt = list_entry(ls, word_count_t, elem);
+    fprintf(outfile, "%d\t%s\n", countt->count, countt->word);
+  }
 }
 
 static bool less_list(const struct list_elem* ewc1, const struct list_elem* ewc2, void* aux) {
   /* TODO */
-  return false;
+  word_count_t *counttx = list_entry(ewc1, word_count_t, elem);
+  word_count_t *countty = list_entry(ewc2, word_count_t, elem);
+  bool (*aux_hs)(const word_count_t *, const word_count_t *) = aux;
+  return aux_hs(counttx, countty);
 }
 
 void wordcount_sort(word_count_list_t* wclist,

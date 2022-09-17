@@ -35,6 +35,15 @@
 /*
  * main - handle command line, spawning one thread per file.
  */
+typedef struct threaded_arg {
+  word_count_list_t* wclist;
+  FILE* infile;
+} threaded_arg_t;
+
+void count_words_threaded(void *temp) {
+  count_words(((threaded_arg_t*)temp)->wclist, ((threaded_arg_t*)temp)->infile);
+}
+
 int main(int argc, char* argv[]) {
   /* Create the empty data structure. */
   word_count_list_t word_counts;
@@ -45,8 +54,25 @@ int main(int argc, char* argv[]) {
     count_words(&word_counts, stdin);
   } else {
     /* TODO */
-  }
+    int sz = argc - 1;
+    pthread_t threads[sz];
+    for (long i = 0; i < sz; i++) {
+      threaded_arg_t *temp = malloc(sizeof(threaded_arg_t));
+      FILE *infile = fopen(argv[i + 1], "r");
+      temp->infile = infile;
+      temp->wclist = &word_counts;
+      int ttc =
+          pthread_create(&threads[i], NULL, count_words_threaded, (void *)temp);
+      if (ttc) {
+        printf("error in %d\n", ttc);
+        exit(-1);
+      }
+    }
 
+    for (long i = 0; i < sz; i++) {
+      pthread_join(threads[i], 0);
+    }
+  }
   /* Output final result of all threads' work. */
   wordcount_sort(&word_counts, less_count);
   fprint_words(&word_counts, stdout);
