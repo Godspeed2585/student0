@@ -26,7 +26,9 @@
 
 #include "word_count.h"
 
-void init_words(word_count_list_t* wclist) { /* TODO */
+void init_words(word_count_list_t* wclist) { 
+  /* TODO */
+  list_init(wclist);
 }
 
 size_t len_words(word_count_list_t* wclist) {
@@ -69,7 +71,6 @@ word_count_t* add_word(word_count_list_t* wclist, char* word) {
   countt->word = malloc(64 * sizeof(char));
   strcpy(countt->word, word);
   list_push_back(wclist, &countt->elem);
-
   return countt;
 }
 
@@ -83,7 +84,7 @@ void fprint_words(word_count_list_t* wclist, FILE* outfile) {
   }
 }
 
-static bool less_list(const struct list_elem* ewc1, const struct list_elem* ewc2, void* aux) {
+static bool li_ls(const struct list_elem* ewc1, const struct list_elem* ewc2, void* aux) {
   /* TODO */
   word_count_t *counttx = list_entry(ewc1, word_count_t, elem);
   word_count_t *countty = list_entry(ewc2, word_count_t, elem);
@@ -93,5 +94,5 @@ static bool less_list(const struct list_elem* ewc1, const struct list_elem* ewc2
 
 void wordcount_sort(word_count_list_t* wclist,
                     bool less(const word_count_t*, const word_count_t*)) {
-  list_sort(wclist, less_list, less);
+  list_sort(wclist, li_ls, less);
 }

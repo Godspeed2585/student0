@@ -83,7 +83,6 @@ word_count_t* add_word(word_count_list_t* wclist, char* word) {
   {
     word_count_t *countt = list_entry(ls, word_count_t, elem);
     if (!strcmp(word, countt->word)) {
-      // word already present
       countt->count++;
       pthread_mutex_unlock(&wclist->lock);
       return countt;
@@ -111,8 +110,9 @@ void fprint_words(word_count_list_t* wclist, FILE* outfile) {
   pthread_mutex_unlock(&wclist->lock);
 }
 
-
 void wordcount_sort(word_count_list_t* wclist, bool less(const word_count_t*, const word_count_t*)) {
   /* TODO */
+    pthread_mutex_lock(&wclist->lock);
     list_sort(wclist, li_ls, less);
+    pthread_mutex_unlock(&wclist->lock);
 }
