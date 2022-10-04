@@ -37,45 +37,55 @@
  */
 typedef struct threaded_arg {
   word_count_list_t* wclist;
-  FILE* infile;
+  char* file;
 } threaded_arg_t;
 
-void count_words_threaded(void *temp) {
-  count_words(((threaded_arg_t*)temp)->wclist, ((threaded_arg_t*)temp)->infile);
+void* threads_count_words(void* t)
+{
+  threaded_arg_t* mm = (threaded_arg_t*) t;
+  //char** arg = (char**) t;
+  //char* file = arg[1];
+  //printf("%s\n", file);
+  FILE *fp = fopen(mm->file, "r");
+  count_words(mm->wclist, fp);
+  fclose(fp);
+  pthread_exit(NULL);
 }
 
 int main(int argc, char* argv[]) {
+  int rc;
+  long t;
   /* Create the empty data structure. */
   word_count_list_t word_counts;
   init_words(&word_counts);
-
-  if (argc <= 1) {
+  word_count_list_t* ptr = &word_counts;
+  if (argc <= 1) {                                          //argc==2呢？？？？？
     /* Process stdin in a single thread. */
-    count_words(&word_counts, stdin);
+    count_words(ptr, stdin);
   } else {
     /* TODO */
-    int sz = argc - 1;
-    pthread_t threads[sz];
-    for (long i = 0; i < sz; i++) {
-      threaded_arg_t *temp = malloc(sizeof(threaded_arg_t));
-      FILE *infile = fopen(argv[i + 1], "r");
-      temp->infile = infile;
-      temp->wclist = &word_counts;
-      int ttc =
-          pthread_create(&threads[i], NULL, count_words_threaded, (void *)temp);
-      if (ttc) {
-        printf("error in %d\n", ttc);
+    int nthreads = argc - 1;
+    pthread_t threads[nthreads];
+    //char* cptr = (char*) ptr;
+    for (t = 0; t < nthreads; t++) {
+      char* FileName = argv[t+1];
+      threaded_arg_t* mm = malloc(sizeof(threaded_arg_t));
+      mm->wclist = ptr;
+      mm->file = FileName;
+      rc = pthread_create(&threads[t], NULL, threads_count_words, (void*)mm);
+      if (rc) {
+        printf("ERROR; return code from pthread_create() is %d\n", rc);
         exit(-1);
       }
     }
-
-    for (long i = 0; i < sz; i++) {
+    for (long i = 0; i < nthreads; i++) {
       pthread_join(threads[i], 0);
     }
   }
+
   /* Output final result of all threads' work. */
   wordcount_sort(&word_counts, less_count);
   fprint_words(&word_counts, stdout);
-  pthread_exit(NULL);
+  pthread_mutex_destroy(&(word_counts.lock));
   return 0;
 }

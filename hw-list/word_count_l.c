@@ -29,27 +29,29 @@
 void init_words(word_count_list_t* wclist) { 
   /* TODO */
   list_init(wclist);
+  return;
 }
 
 size_t len_words(word_count_list_t* wclist) {
-  /* TODO */
-  size_t cd = 0;
-  struct list_elem *ls;
-  for (ls = list_begin(wclist); ls != list_end(wclist); ls = list_next(ls)) 
-  {
-    cd++;
-  }
-  return cd;
+  // /* TODO */
+  // // size_t len = 0;
+  // // struct list_elem *e;
+  // // for(e = list_begin(wclist); e != list_end (&foo_list); e = list_next (e)))
+  // // {
+  // //   len++;
+  // // }
+  return list_size(wclist);
 }
 
 word_count_t* find_word(word_count_list_t* wclist, char* word) {
   /* TODO */
-  struct list_elem *ls;
-  for (ls = list_begin(wclist); ls != list_end(wclist); ls = list_next(ls)) 
+  struct list_elem *e;
+  for(e = list_begin(wclist); e != list_end (wclist); e = list_next (e))
   {
-    word_count_t *countt = list_entry(ls, word_count_t, elem);
-    if (!strcmp(word, countt->word)) {
-      return countt;
+    word_count_t* big_elem = list_entry (e, word_count_t, elem);
+    if(!strcmp(word, big_elem->word))
+    {
+      return big_elem;
     }
   }
   return NULL;
@@ -57,42 +59,49 @@ word_count_t* find_word(word_count_list_t* wclist, char* word) {
 
 word_count_t* add_word(word_count_list_t* wclist, char* word) {
   /* TODO */
-  struct list_elem *ls;
-  for (ls = list_begin(wclist); ls != list_end(wclist); ls = list_next(ls)) 
+  word_count_t* t_BigElem = find_word(wclist, word);
+  if(t_BigElem == NULL)
   {
-    word_count_t *countt = list_entry(ls, word_count_t, elem);
-    if (!strcmp(word, countt->word)) {
-      countt->count++;
-      return countt;
+    word_count_t* ptr_big_element = malloc(sizeof(word_count_t));
+    ptr_big_element->word = (char*) malloc(32 * sizeof(char));
+    
+    if(!ptr_big_element)
+    {
+      return NULL;
     }
+    ptr_big_element->count = 1;
+    strcpy(ptr_big_element->word, word);
+    list_insert(list_tail(wclist), &(ptr_big_element->elem));
+    return ptr_big_element;
   }
-  word_count_t *countt = malloc(sizeof(word_count_t));
-  countt->count = 1;
-  countt->word = malloc(64 * sizeof(char));
-  strcpy(countt->word, word);
-  list_push_back(wclist, &countt->elem);
-  return countt;
+  else
+  {
+    t_BigElem->count++;
+    return t_BigElem;
+  }
+  return NULL;
 }
 
 void fprint_words(word_count_list_t* wclist, FILE* outfile) { 
   /* TODO */
-  struct list_elem *ls;
-  for (ls = list_begin(wclist); ls != list_end(wclist); ls = list_next(ls)) 
+  struct list_elem *e;
+  for(e = list_begin(wclist); e != list_end (wclist); e = list_next (e))
   {
-    word_count_t *countt = list_entry(ls, word_count_t, elem);
-    fprintf(outfile, "%d\t%s\n", countt->count, countt->word);
+    word_count_t* big_elem = list_entry (e, word_count_t, elem);
+    fprintf(outfile, "%s: %d\n", big_elem->word, big_elem->count);
   }
+  return;
 }
-
-static bool li_ls(const struct list_elem* ewc1, const struct list_elem* ewc2, void* aux) {
+static bool less_list(const struct list_elem* ewc1, const struct list_elem* ewc2, void* aux) {
   /* TODO */
-  word_count_t *counttx = list_entry(ewc1, word_count_t, elem);
-  word_count_t *countty = list_entry(ewc2, word_count_t, elem);
-  bool (*aux_hs)(const word_count_t *, const word_count_t *) = aux;
-  return aux_hs(counttx, countty);
+  word_count_t* big_elem1 = list_entry (ewc1, word_count_t, elem);
+  word_count_t* big_elem2 = list_entry (ewc2, word_count_t, elem);
+  bool (*aux_fun) (const word_count_t *, const word_count_t *) = aux;
+  return aux_fun(big_elem1, big_elem2);
 }
 
 void wordcount_sort(word_count_list_t* wclist,
                     bool less(const word_count_t*, const word_count_t*)) {
-  list_sort(wclist, li_ls, less);
+  list_sort(wclist, less_list, less);
+  
 }
